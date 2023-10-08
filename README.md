@@ -15,6 +15,9 @@ Saturn 3 Ultra firmware mod toolkit
 *If you install UbiReader via pip, you need to install it via sudo as root..*
 > sudo pip install --user ubi_reader
 
+[Binwalk](https://github.com/ReFirmLabs/binwalk)<br/>
+> sudo apt install binwalk
+
 [Java](https://www.azul.com/downloads/?package=jdk#zulu)
 
 **Usage:**<br/>

@@ -7,7 +7,9 @@
 package sk.arsi.saturn.ultra.firmware.elements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -16,7 +18,7 @@ import java.util.List;
 public class FirmwareRoot {
 
     private final List<Element> elements = new ArrayList<>();
-    private final List<UbiCreateElement> sizeElement = new ArrayList<>();
+    private final Map<String, UbiCreateElement> sizeElements = new HashMap<>();
     private final List<FatloadUsbElement> loadElements = new ArrayList<>();
     private final List<FilePartitionElement> filePartitionElements = new ArrayList<>();
 
@@ -24,9 +26,14 @@ public class FirmwareRoot {
         return elements;
     }
 
-    public List<UbiCreateElement> getSizeElement() {
-        return sizeElement;
+    public UbiCreateElement getSizeElement(String partitionName) {
+        return sizeElements.get(partitionName);
     }
+
+    public Map<String, UbiCreateElement> getSizeElements() {
+        return sizeElements;
+    }
+
 
     public List<FatloadUsbElement> getLoadElements() {
         return loadElements;

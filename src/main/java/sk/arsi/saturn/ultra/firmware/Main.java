@@ -26,6 +26,7 @@ import sk.arsi.saturn.ultra.firmware.elements.CrcCheckElement;
 import sk.arsi.saturn.ultra.firmware.elements.Element;
 import sk.arsi.saturn.ultra.firmware.elements.FatloadUsbElement;
 import sk.arsi.saturn.ultra.firmware.elements.FirmwareRoot;
+import sk.arsi.saturn.ultra.firmware.elements.UbiCreateElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiWriteElement;
 
 /**
@@ -88,8 +89,6 @@ public class Main {
                 }
                 build(file);
                 break;
-            case "-validate":
-                break;
         }
     }
 
@@ -98,7 +97,6 @@ public class Main {
         System.out.println("Usage:");
         System.out.println("-extract filename>");
         System.out.println("-build <original-firmware-filename>");
-        System.out.println("-validate");
     }
 
     public static void extract(File src) throws FileNotFoundException, IOException {
@@ -213,7 +211,7 @@ public class Main {
             }
             String name = record.getPartitionName();
             System.out.println("********************************************************************");
-            System.out.println("Disk image file: " + name);
+            System.out.println("*       File: " + name);
             File original = new File(directory, name);
             File custom = new File(directory, name.replace(".es", ".out.es"));
             File originalCrc = new File(directory, name + ".crc");
@@ -225,9 +223,9 @@ public class Main {
                 }
             }
             if (useCustom) {
-                addFile(buffer, custom, customCrc, record);
+                addFile(buffer, custom, customCrc, record, firmwareRoot);
             } else {
-                addFile(buffer, original, originalCrc, record);
+                addFile(buffer, original, originalCrc, record, firmwareRoot);
             }
 
         }
@@ -260,7 +258,22 @@ public class Main {
         channel.write(buffer);
     }
 
-    private static void addFile(ByteBuffer buffer, File image, File imageCrc, FatloadUsbElement loadElement) throws IOException {
+    private static void addFile(ByteBuffer buffer, File image, File imageCrc, FatloadUsbElement loadElement, FirmwareRoot firmwareRoot) throws IOException {
+        UbiCreateElement sizeElement = firmwareRoot.getSizeElement(loadElement.getPartitionName());
+        if (sizeElement != null) {
+            if (image.length() > sizeElement.getSize()) {
+                System.out.println("The " + loadElement.getPartitionName() + " disk image exceeds the max partition size.");
+                System.out.println("   Size: " + image.length());
+                System.out.println("Maximum: " + sizeElement.getSize());
+            } else {
+                float free = (int) (sizeElement.getSize() - image.length());
+                System.out.println("*      Image: " + loadElement.getPartitionName());
+                free = free / 1024;
+                System.out.println("*  Free size: " + free + "kB");
+                free = free / 1024;
+                System.out.println("*  Free size: " + free + "MB");
+            }
+        }
         ByteBuffer fileData = bufferFile(image);
         ByteBuffer fileCrc = bufferFile(imageCrc);
         int startPosition = buffer.position();
@@ -282,8 +295,8 @@ public class Main {
         if (ubiWriteElement != null) {
             ubiWriteElement.setSize(loadElement.getLength() - 8);
         }
-        System.out.println("Start: " + String.format("0x%08X", origPosition) + " > " + String.format("0x%08X", loadElement.getPosition()));
-        System.out.println("Length: " + String.format("0x%08X", origLength) + " > " + String.format("0x%08X", loadElement.getLength()));
+        System.out.println("*      Start: " + String.format("0x%08X", origPosition) + " > " + String.format("0x%08X", loadElement.getPosition()));
+        System.out.println("*     Length: " + String.format("0x%08X", origLength) + " > " + String.format("0x%08X", loadElement.getLength()));
         while ((buffer.position() & 0xfff) > 0) {
             buffer.put((byte) 0xff);
         }

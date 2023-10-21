@@ -19,7 +19,7 @@ public class UbiCreateElement extends Element {
         super(firmwareRoot, originalLine);
         this.volume = volume;
         this.size = size;
-        firmwareRoot.getSizeElement().add(this);
+        firmwareRoot.getSizeElements().put(volume + ".es", this);
     }
 
     public String getVolume() {

@@ -37,6 +37,7 @@ import sk.arsi.saturn.ultra.firmware.elements.WriteCisElement;
 public class FimwareUtils {
 
     public static FirmwareRoot parseElements(File firmwareImage) throws FileNotFoundException, IOException {
+        System.out.println("Parsing firmware configuration...");
         FirmwareRoot firmwareRoot = new FirmwareRoot();
         List<Element> elements = firmwareRoot.getElements();
         BufferedReader reader = new BufferedReader(new FileReader(firmwareImage));
@@ -60,8 +61,8 @@ public class FimwareUtils {
                 final int deviceNumber = Integer.valueOf(split[2]);
                 final long loadAddress = Long.valueOf(split[3].replace("0x", ""), 16);
                 final String filename = split[4];
-                long length = Long.valueOf(split[5].replace("0x", ""), 16);
-                long pos = Long.valueOf(split[6].replace("0x", ""), 16);
+                int length = Integer.valueOf(split[5].replace("0x", ""), 16);
+                int pos = Integer.valueOf(split[6].replace("0x", ""), 16);
                 partitionElement.addElement(new FatloadUsbElement(firmwareRoot, partitionElement, originalLine, deviceNumber, loadAddress, filename, length, pos));
             } else if (line.startsWith("crccheck") && partitionElement != null) {
                 //crccheck 0x21000000 0x5608

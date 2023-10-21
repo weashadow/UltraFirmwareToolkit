@@ -5,12 +5,10 @@
  */
 package sk.arsi.saturn.ultra.firmware;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -23,6 +21,7 @@ import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import sk.arsi.saturn.ultra.firmware.elements.FatloadUsbElement;
 import sk.arsi.saturn.ultra.firmware.elements.FirmwareRoot;
 
 /**
@@ -67,8 +66,6 @@ public class Main {
                     usage();
                     return;
                 }
-                FirmwareRoot firmwareRoot = FimwareUtils.parseElements(file);
-                System.exit(0);
                 extract(file);
                 break;
             case "-build":
@@ -101,26 +98,29 @@ public class Main {
     }
 
     public static void extract(File src) throws FileNotFoundException, IOException {
-        List<FileRecord> records = new ArrayList<>();
+        FirmwareRoot firmwareRoot = FimwareUtils.parseElements(file);
         String build = "";
-        parseHeader(src, records);
         ByteBuffer buffer = bufferFile(src);
-        for (int i = 0; i < records.size(); i++) {
-            FileRecord record = records.get(i);
-            buffer.position(record.position);
-            byte[] data = new byte[record.size];
+        for (int i = 0; i < firmwareRoot.getLoadElements().size(); i++) {
+            FatloadUsbElement loadElement = firmwareRoot.getLoadElements().get(i);
+            if ("set_config".equals(loadElement.getPartitionName())) {
+                continue;
+            }
+            System.out.println("Extracting partition: " + loadElement.getPartitionName() + " from firmware image");
+            buffer.position(loadElement.getPosition());
+            byte[] data = new byte[loadElement.getLength() - 8];//length is partition length + 8 byte crc
             byte[] dataCrc = new byte[8];//crc32 as hex string -> 8byte
-            buffer.get(data, 0, record.size);
+            buffer.get(data, 0, loadElement.getLength() - 8);//length is partition length + 8 byte crc
             buffer.get(dataCrc, 0, 8);
-            File tmp = new File(src.getParentFile(), record.getName());
-            File tmpCrc = new File(src.getParentFile(), record.getName() + ".crc");
+            File tmp = new File(src.getParentFile(), loadElement.getPartitionName());
+            File tmpCrc = new File(src.getParentFile(), loadElement.getPartitionName() + ".crc");
             FileOutputStream fos = new FileOutputStream(tmp);
             FileOutputStream fosCrc = new FileOutputStream(tmpCrc);
             fos.write(data);
             fosCrc.write(dataCrc);
             fos.close();
             fosCrc.close();
-            switch (record.getName()) {
+            switch (loadElement.getPartitionName()) {
                 case "rootfs.es":
                 case "miservice.es":
                 case "customer.es":
@@ -134,7 +134,7 @@ public class Main {
                     build += buildLines.replace(unit_size, flasfInfo.unitSize)
                             .replace(block_size, flasfInfo.blockSize)
                             .replace(max_size, flasfInfo.maxBlocks)
-                            .replace(dir_name, record.getName().replace(".es", ""));
+                            .replace(dir_name, loadElement.getPartitionName().replace(".es", ""));
                 }
                 break;
                 default:
@@ -173,69 +173,6 @@ public class Main {
         return "";
     }
 
-    public static void parseHeader(File src, List<FileRecord> records) throws FileNotFoundException, IOException {
-        long position = 0;
-        int subIndex = 0;
-        String fileName = "";
-        BufferedReader reader = new BufferedReader(new FileReader(src));
-        String line = reader.readLine();
-        long lineStart = position;
-        long lineLength = line.length();
-        position += lineLength;
-        while (line != null && !line.startsWith("%")) {
-            if (line.startsWith("# File Partition:")) {
-                fileName = line.replace("# File Partition:", "").trim();
-                subIndex = 0;
-                if (!"set_config".equals(fileName)) {
-                    System.out.println("Name:" + fileName);
-                    line = reader.readLine();
-                    lineStart = position;
-                    lineLength = line.length();
-                    position += lineLength;
-                    while (line != null && !line.startsWith("fatload")) {
-                        if (line.trim().startsWith("ubi create")) {
-                            String tmp = line.trim().replace("ubi create ", "");
-                            String[] split = tmp.split(" ");
-                            String name = split[0];
-                            String maxSize = split[1];
-                            long size = Long.parseUnsignedLong(maxSize.replace("0x", ""), 16);
-                            maxSizes.put(name, size);
-                            size = size / 1024;
-                            size = size / 1024;
-                            System.out.print("Partition: " + name);
-                            System.out.println("     Max. Size: " + size + "MB");
-                        }
-                        line = reader.readLine();
-                        lineStart = position;
-                        lineLength = line.length();
-                        position += lineLength;
-                    }
-                    String[] split = line.split(" ");
-                    String start = split[6];
-                    String endx = split[5];
-                    if (!"set_partition.es".equalsIgnoreCase(fileName)) {
-                        records.add(new FileRecord(fileName, start, endx, lineStart, lineLength, line));
-                    }
-                }
-            } else if (line.startsWith("fatload usb")) {
-                subIndex++;
-                String[] split = line.split(" ");
-                String start = split[6];
-                String endx = split[5];
-                if (!"set_partition.es".equalsIgnoreCase(fileName)) {
-                    records.add(new FileRecord(fileName + "." + subIndex, start, endx, lineStart, lineLength, line));
-                }
-            }
-            // read next line
-            line = reader.readLine();
-            lineStart = position;
-            lineLength = line.length();
-            position += lineLength;
-        }
-
-        reader.close();
-    }
-
     public static ByteBuffer bufferFile(File file) throws IOException {
         long size = file.length();
 
@@ -258,7 +195,7 @@ public class Main {
         System.out.println("********************************************************************");
         File directory = file.getParentFile();
         String build = "";
-        parseHeader(src, records);
+        //    parseHeader(src, records);
         records.sort(new Comparator<FileRecord>() {
             @Override
             public int compare(FileRecord o1, FileRecord o2) {

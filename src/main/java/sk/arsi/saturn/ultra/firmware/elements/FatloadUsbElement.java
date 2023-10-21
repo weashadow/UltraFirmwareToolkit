@@ -15,11 +15,11 @@ public class FatloadUsbElement extends Element {
     private int index = 0;
     private final long loadAddress;
     private final String filename;
-    private long length;
-    private long position;
+    private int length;
+    private int position;
     private FilePartitionElement partitionElement;
 
-    public FatloadUsbElement(FirmwareRoot firmwareRoot, FilePartitionElement partitionElement, String originalLine, int deviceNumber, long loadAddress, String filename, long length, long position) {
+    public FatloadUsbElement(FirmwareRoot firmwareRoot, FilePartitionElement partitionElement, String originalLine, int deviceNumber, long loadAddress, String filename, int length, int position) {
         super(firmwareRoot, originalLine);
         this.deviceNumber = deviceNumber;
         this.loadAddress = loadAddress;
@@ -42,19 +42,19 @@ public class FatloadUsbElement extends Element {
         return filename;
     }
 
-    public long getLength() {
+    public int getLength() {
         return length;
     }
 
-    public long getPosition() {
+    public int getPosition() {
         return position;
     }
 
-    public void setLength(long length) {
+    public void setLength(int length) {
         this.length = length;
     }
 
-    public void setPosition(long position) {
+    public void setPosition(int position) {
         this.position = position;
     }
 

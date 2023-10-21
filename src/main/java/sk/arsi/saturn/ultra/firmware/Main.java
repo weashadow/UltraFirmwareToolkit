@@ -305,18 +305,17 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static boolean keyboard(String prompt) {
-//        System.out.println(prompt + " [" + "y" + "/" + "N" + "]: ");
-//        while (true) {
-//            String option = scanner.nextLine();
-//            if ("y".equalsIgnoreCase(option)) {
-//                return true;
-//            } else if ("n".equalsIgnoreCase(option)) {
-//                return false;
-//            } else if ("".equals(option)) {
-//                return false;
-//            };
-//        }
-        return false;
+        System.out.println(prompt + " [" + "y" + "/" + "N" + "]: ");
+        while (true) {
+            String option = scanner.nextLine();
+            if ("y".equalsIgnoreCase(option)) {
+                return true;
+            } else if ("n".equalsIgnoreCase(option)) {
+                return false;
+            } else if ("".equals(option)) {
+                return false;
+            };
+        }
     }
 
     public static boolean sameFile(File a, File b) {

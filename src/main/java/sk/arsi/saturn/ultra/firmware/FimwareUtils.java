@@ -70,7 +70,7 @@ public class FimwareUtils {
                 String[] split = line.split(" ");
                 final long loadAddress = Long.valueOf(split[1].replace("0x", ""), 16);
                 final long length = Long.valueOf(split[2].replace("0x", ""), 16);
-                partitionElement.addElement(new CrcCheckElement(firmwareRoot, originalLine, loadAddress, length));
+                partitionElement.addElement(new CrcCheckElement(firmwareRoot, partitionElement, originalLine, loadAddress, length));
             } else if (line.startsWith("writecis") && partitionElement != null) {
                 //writecis 0x21000000 0x21800000 10 0 0 5
                 partitionElement.addElement(new WriteCisElement(firmwareRoot, originalLine, line));
@@ -92,8 +92,8 @@ public class FimwareUtils {
                 String[] split = line.split(" ");
                 final long address = Long.valueOf(split[2].replace("0x", ""), 16);
                 final String volume = split[3];
-                final long size = Long.valueOf(split[4].replace("0x", ""), 16);
-                partitionElement.addElement(new UbiWriteElement(firmwareRoot, originalLine, address, volume, size));
+                final int size = Integer.valueOf(split[4].replace("0x", ""), 16);
+                partitionElement.addElement(new UbiWriteElement(firmwareRoot, partitionElement, originalLine, address, volume, size));
             } else if (line.startsWith("ubi create") && partitionElement != null) {
                 // ubi create rootfs 0x2C00000
                 String[] split = line.split(" ");
@@ -115,7 +115,8 @@ public class FimwareUtils {
             } else {
                 System.out.println("Element not decoded: " + line);
             }
-            line = reader.readLine().trim();
+            originalLine = reader.readLine();
+            line = originalLine.trim();
         }
 
         return firmwareRoot;

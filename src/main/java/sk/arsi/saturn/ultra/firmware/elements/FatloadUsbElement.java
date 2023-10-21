@@ -85,4 +85,8 @@ public class FatloadUsbElement extends Element {
         return getLeadingSpaces() + "fatload usb " + deviceNumber + " " + hex(loadAddress) + " " + filename + " " + hex(length) + " " + hex(position);
     }
 
+    public FilePartitionElement getPartitionElement() {
+        return partitionElement;
+    }
+
 }

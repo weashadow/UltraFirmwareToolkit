@@ -43,11 +43,19 @@ public abstract class Element {
     }
 
     public String hex(int value) {
-        return String.format("0x%08X", value);
+        return String.format("0x%01X", value).toLowerCase();
     }
 
     public String hex(long value) {
-        return String.format("0x%08X", value);
+        return String.format("0x%01X", value).toLowerCase();
+    }
+
+    public String hexUpperCase(int value) {
+        return String.format("0x%01X", value);
+    }
+
+    public String hexUpperCase(long value) {
+        return String.format("0x%01X", value);
     }
 
     public abstract String generateOutputLine();

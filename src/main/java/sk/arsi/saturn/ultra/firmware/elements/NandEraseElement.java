@@ -25,7 +25,7 @@ public class NandEraseElement extends Element {
     @Override
     public String generateOutputLine() {
         //nand erase.part UBI
-        return getLeadingSpaces() + "nand erase.part " + partName;
+        return getOriginalLine();
     }
 
 }

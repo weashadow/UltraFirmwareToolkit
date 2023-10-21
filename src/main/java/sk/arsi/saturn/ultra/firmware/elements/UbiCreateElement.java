@@ -38,7 +38,7 @@ public class UbiCreateElement extends Element {
     @Override
     public String generateOutputLine() {
         //// ubi create rootfs 0x2C00000
-        return getLeadingSpaces() + "ubi create " + volume + hex(size);
+        return getOriginalLine();
     }
 
 }

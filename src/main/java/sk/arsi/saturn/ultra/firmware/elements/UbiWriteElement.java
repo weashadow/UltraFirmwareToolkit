@@ -14,17 +14,32 @@ public class UbiWriteElement extends Element {
 
     private final long address;
     private final String volume;
-    private final long size;
+    private int size;
+    private FilePartitionElement partitionElement;
+    private int index = 0;
 
-    public UbiWriteElement(FirmwareRoot firmwareRoot, String originalLine, long address, String volume, long size) {
+    public UbiWriteElement(FirmwareRoot firmwareRoot, FilePartitionElement partitionElement, String originalLine, long address, String volume, int size) {
         super(firmwareRoot, originalLine);
         this.address = address;
         this.volume = volume;
         this.size = size;
+        this.partitionElement = partitionElement;
     }
 
-    public long getSize() {
+    public String getPartitionName() {
+        String n = partitionElement.getName();
+        if (index > 0) {
+            return n + "." + index;
+        }
+        return n;
+    }
+
+    public int getSize() {
         return size;
+    }
+
+    public void setSize(int size) {
+        this.size = size;
     }
 
     public long getAddress() {
@@ -38,7 +53,14 @@ public class UbiWriteElement extends Element {
     @Override
     public String generateOutputLine() {
         //ubi write 0x21000000 rootfs 0x1F7C000
-        return getLeadingSpaces() + "ubi write " + hex(address) + " " + volume + " " + hex(size);
+        return getLeadingSpaces() + "ubi write " + hexUpperCase(address) + " " + volume + " " + hexUpperCase(size);
     }
 
+    public int getIndex() {
+        return index;
+    }
+
+    public void setIndex(int index) {
+        this.index = index;
+    }
 }

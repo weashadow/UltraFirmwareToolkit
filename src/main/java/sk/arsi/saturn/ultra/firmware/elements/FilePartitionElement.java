@@ -7,7 +7,9 @@
 package sk.arsi.saturn.ultra.firmware.elements;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  *
@@ -19,6 +21,8 @@ public class FilePartitionElement extends Element {
     private final List<Element> elements = new ArrayList<>();
     private final List<UbiCreateElement> createElements = new ArrayList<>();
     private final List<FatloadUsbElement> loadElements = new ArrayList<>();
+    private final Map<String, CrcCheckElement> crcElements = new HashMap<>();
+    private final Map<String, UbiWriteElement> ubiWriteElements = new HashMap<>();
 
 
     public FilePartitionElement(FirmwareRoot firmwareRoot, String originalLine, String name) {
@@ -36,6 +40,7 @@ public class FilePartitionElement extends Element {
     }
 
     public void addElement(Element element) {
+        getFirmwareRoot().getElements().add(element);
         elements.add(element);
         if (element instanceof FatloadUsbElement) {
             loadElements.add((FatloadUsbElement) element);
@@ -44,6 +49,18 @@ public class FilePartitionElement extends Element {
             }
         } else if (element instanceof UbiCreateElement) {
             createElements.add((UbiCreateElement) element);
+        } else if (element instanceof CrcCheckElement) {
+            if (loadElements.size() > 0) {
+                ((CrcCheckElement) element).setIndex(loadElements.size() - 1);
+                crcElements.put(((CrcCheckElement) element).getPartitionName(), ((CrcCheckElement) element));
+            }
+
+        } else if (element instanceof UbiWriteElement) {
+            if (loadElements.size() > 0) {
+                ((UbiWriteElement) element).setIndex(loadElements.size() - 1);
+                ubiWriteElements.put(((UbiWriteElement) element).getPartitionName(), ((UbiWriteElement) element));
+            }
+
         }
     }
 
@@ -53,6 +70,14 @@ public class FilePartitionElement extends Element {
 
     public List<UbiCreateElement> getCreateElements() {
         return createElements;
+    }
+
+    public CrcCheckElement getCrcCheckElement(String partitionName) {
+        return crcElements.get(partitionName);
+    }
+
+    public UbiWriteElement getUbiWriteElement(String partitionName) {
+        return ubiWriteElements.get(partitionName);
     }
 
 

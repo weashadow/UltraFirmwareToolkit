@@ -10,17 +10,23 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
+import java.nio.channels.WritableByteChannel;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import sk.arsi.saturn.ultra.firmware.elements.CrcCheckElement;
+import sk.arsi.saturn.ultra.firmware.elements.Element;
 import sk.arsi.saturn.ultra.firmware.elements.FatloadUsbElement;
 import sk.arsi.saturn.ultra.firmware.elements.FirmwareRoot;
+import sk.arsi.saturn.ultra.firmware.elements.UbiWriteElement;
 
 /**
  *
@@ -194,10 +200,15 @@ public class Main {
         File directory = file.getParentFile();
         String build = "";
         ByteBuffer buffer = ByteBuffer.allocate((int) src.length() + ADD_TO_SIZE);
+        byte head[] = new byte[HEADER_SIZE];
+        for (int i = 0; i < head.length; i++) {
+            head[i] = (byte) 0xff;
+        }
+        buffer.put(head);
         List<FatloadUsbElement> loadElements = firmwareRoot.getLoadElements();
         for (int i = 0; i < loadElements.size(); i++) {
             FatloadUsbElement record = loadElements.get(i);
-            if ("set_config".equals(record.getPartitionName())) {
+            if ("set_config".equals(record.getPartitionName()) || "set_partition.es".equals(record.getPartitionName())) {
                 continue;
             }
             String name = record.getPartitionName();
@@ -220,10 +231,33 @@ public class Main {
             }
 
         }
+        String endend = "12345678# <- this is for";
+        buffer.put(endend.getBytes("UTF-8"));
         System.out.println("********************************************************************");
         System.out.println("Original firmware size: " + src.length());
-        long size = buffer.position() + HEADER_SIZE;
+        long size = buffer.position();
         System.out.println("New firmware size: " + size);
+        String firmwareScript = "";
+        List<Element> elements = firmwareRoot.getElements();
+        for (int i = 0; i < elements.size(); i++) {
+            Element element = elements.get(i);
+            firmwareScript += element.generateOutputLine() + "\n";
+        }
+        byte[] firmwareScriptBytes = firmwareScript.getBytes("UTF-8");
+        System.arraycopy(firmwareScriptBytes, 0, head, 0, firmwareScriptBytes.length);
+        for (int i = 0; i < head.length; i++) {
+            buffer.put(i, head[i]);
+        }
+        buffer.flip();
+        File outImage = new File(src.getParent(), src.getName() + ".out");
+        FileOutputStream fc = new FileOutputStream(outImage);
+        writeBuffer(buffer, fc);
+        fc.close();
+    }
+
+    public static void writeBuffer(ByteBuffer buffer, OutputStream stream) throws IOException {
+        WritableByteChannel channel = Channels.newChannel(stream);
+        channel.write(buffer);
     }
 
     private static void addFile(ByteBuffer buffer, File image, File imageCrc, FatloadUsbElement loadElement) throws IOException {
@@ -234,8 +268,20 @@ public class Main {
         buffer.put(fileCrc);
         int origPosition = loadElement.getPosition();
         int origLength = loadElement.getLength();
-        loadElement.setPosition(startPosition + HEADER_SIZE);
-        loadElement.setLength((int) image.length());
+        loadElement.setPosition(startPosition);
+        loadElement.setLength((int) image.length() + 8);//+crc 8 byte
+        CrcCheckElement crcCheckElement = loadElement.getPartitionElement().getCrcCheckElement(loadElement.getPartitionName());
+        if (crcCheckElement != null) {
+            crcCheckElement.setLength(loadElement.getLength());
+        } else {
+            System.out.println("Unable to find CRC check for usb load: " + loadElement.getPartitionName());
+            System.exit(-1);
+
+        }
+        UbiWriteElement ubiWriteElement = loadElement.getPartitionElement().getUbiWriteElement(loadElement.getPartitionName());
+        if (ubiWriteElement != null) {
+            ubiWriteElement.setSize(loadElement.getLength() - 8);
+        }
         System.out.println("Start: " + String.format("0x%08X", origPosition) + " > " + String.format("0x%08X", loadElement.getPosition()));
         System.out.println("Length: " + String.format("0x%08X", origLength) + " > " + String.format("0x%08X", loadElement.getLength()));
         while ((buffer.position() & 0xfff) > 0) {
@@ -246,17 +292,18 @@ public class Main {
     private static final Scanner scanner = new Scanner(System.in);
 
     public static boolean keyboard(String prompt) {
-        System.out.println(prompt + " [" + "y" + "/" + "N" + "]: ");
-        while (true) {
-            String option = scanner.nextLine();
-            if ("y".equalsIgnoreCase(option)) {
-                return true;
-            } else if ("n".equalsIgnoreCase(option)) {
-                return false;
-            } else if ("".equals(option)) {
-                return false;
-            };
-        }
+//        System.out.println(prompt + " [" + "y" + "/" + "N" + "]: ");
+//        while (true) {
+//            String option = scanner.nextLine();
+//            if ("y".equalsIgnoreCase(option)) {
+//                return true;
+//            } else if ("n".equalsIgnoreCase(option)) {
+//                return false;
+//            } else if ("".equals(option)) {
+//                return false;
+//            };
+//        }
+        return false;
     }
 
     public static boolean sameFile(File a, File b) {

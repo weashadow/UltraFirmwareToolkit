@@ -42,7 +42,7 @@ public class NandWriteElement extends Element {
     @Override
     public String generateOutputLine() {
         //nand write.e 0x21000000 IPL0 0x5BE0
-        return getLeadingSpaces() + "nand write.e " + hex(address) + " " + partName + " " + hex(length);
+        return getOriginalLine();
     }
 
 }

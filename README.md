@@ -32,7 +32,7 @@ After editing the filesystem, use build.sh to create new UBI disk images and crc
 Clear all generated files and directories with clear.sh<br/>
 
 **ToDo:**<br/>
-Generating new firmware file from UBI disk images and crc<br/>
+All that's left is to produce new firmware and upload it to the printer.<br/>
 
 **Partitions:**<br/>
 > rootfs 44 MB<br/>

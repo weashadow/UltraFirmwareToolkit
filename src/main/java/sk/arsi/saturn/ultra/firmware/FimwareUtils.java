@@ -28,6 +28,7 @@ import sk.arsi.saturn.ultra.firmware.elements.UbiCreateElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiPartElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiWriteElement;
 import sk.arsi.saturn.ultra.firmware.elements.UpgradeBinElement;
+import sk.arsi.saturn.ultra.firmware.elements.UpgradeForceElement;
 import sk.arsi.saturn.ultra.firmware.elements.WriteCisElement;
 
 /**
@@ -51,7 +52,7 @@ public class FimwareUtils {
             } else if (line.startsWith("#upgrade_bin_version")) {
                 elements.add(new UpgradeBinElement(firmwareRoot, originalLine, line.split("=")[1]));
             } else if (line.startsWith("#upgrade_force")) {
-                elements.add(new UpgradeBinElement(firmwareRoot, originalLine, line.split("=")[1]));
+                elements.add(new UpgradeForceElement(firmwareRoot, originalLine, Integer.valueOf(line.split("=")[1])));
             } else if (line.startsWith("# File Partition:")) {
                 partitionElement = new FilePartitionElement(firmwareRoot, originalLine, line.replace("# File Partition:", "").trim());
                 elements.add(partitionElement);

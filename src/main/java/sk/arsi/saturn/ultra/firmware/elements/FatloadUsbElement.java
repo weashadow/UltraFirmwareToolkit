@@ -79,4 +79,10 @@ public class FatloadUsbElement extends Element {
         this.index = index;
     }
 
+    @Override
+    public String generateOutputLine() {
+        //fatload usb 0 0x21000000 $(UpgradeImage) 0x1d10008 0x2a53000
+        return getLeadingSpaces() + "fatload usb " + deviceNumber + " " + hex(loadAddress) + " " + filename + " " + hex(length) + " " + hex(position);
+    }
+
 }

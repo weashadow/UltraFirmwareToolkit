@@ -16,4 +16,9 @@ public class EndElement extends Element {
         super(firmwareRoot, originalLine);
     }
 
+    @Override
+    public String generateOutputLine() {
+        return "% <- this is end of script symbol";
+    }
+
 }

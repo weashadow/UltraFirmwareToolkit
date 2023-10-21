@@ -35,5 +35,10 @@ public class UbiCreateElement extends Element {
         return "Volume: " + volume + " Size: " + size; //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public String generateOutputLine() {
+        //// ubi create rootfs 0x2C00000
+        return getLeadingSpaces() + "ubi create " + volume + hex(size);
+    }
 
 }

@@ -23,4 +23,9 @@ public class UpgradeForceElement extends Element {
         return force;
     }
 
+    @Override
+    public String generateOutputLine() {
+        return getOriginalLine();
+    }
+
 }

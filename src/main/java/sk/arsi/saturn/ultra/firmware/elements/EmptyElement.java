@@ -16,4 +16,9 @@ public class EmptyElement extends Element {
         super(firmwareRoot, originalLine);
     }
 
+    @Override
+    public String generateOutputLine() {
+        return "";
+    }
+
 }

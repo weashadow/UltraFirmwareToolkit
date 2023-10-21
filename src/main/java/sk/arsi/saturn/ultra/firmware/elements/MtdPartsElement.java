@@ -22,4 +22,9 @@ public class MtdPartsElement extends Element {
         return data;
     }
 
+    @Override
+    public String generateOutputLine() {
+        return getLeadingSpaces() + "mtdparts del CIS";
+    }
+
 }

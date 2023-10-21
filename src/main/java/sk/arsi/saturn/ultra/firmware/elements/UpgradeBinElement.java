@@ -23,5 +23,9 @@ public class UpgradeBinElement extends Element {
         return version;
     }
 
+    @Override
+    public String generateOutputLine() {
+        return getOriginalLine();
+    }
 
 }

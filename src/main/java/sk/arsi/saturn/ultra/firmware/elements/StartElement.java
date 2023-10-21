@@ -16,4 +16,9 @@ public class StartElement extends Element {
         super(firmwareRoot, originalLine);
     }
 
+    @Override
+    public String generateOutputLine() {
+        return getOriginalLine();
+    }
+
 }

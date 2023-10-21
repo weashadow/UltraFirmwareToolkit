@@ -3,7 +3,6 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-
 package sk.arsi.saturn.ultra.firmware.elements;
 
 /**
@@ -28,5 +27,29 @@ public abstract class Element {
         return firmwareRoot;
     }
 
+    protected int getLeadingSpacesCount() {
+        if (originalLine != null && originalLine.length() > 0) {
+            return originalLine.indexOf(originalLine.trim());
+        }
+        return 0;
+    }
+
+    protected String getLeadingSpaces() {
+        String tmp = "";
+        for (int i = 0; i < getLeadingSpacesCount(); i++) {
+            tmp += " ";
+        }
+        return tmp;
+    }
+
+    public String hex(int value) {
+        return String.format("0x%08X", value);
+    }
+
+    public String hex(long value) {
+        return String.format("0x%08X", value);
+    }
+
+    public abstract String generateOutputLine();
 
 }

@@ -23,4 +23,10 @@ public class WriteCisElement extends Element {
         return data;
     }
 
+    @Override
+    public String generateOutputLine() {
+        ////writecis 0x21000000 0x21800000 10 0 0 5
+        return getOriginalLine();
+    }
+
 }

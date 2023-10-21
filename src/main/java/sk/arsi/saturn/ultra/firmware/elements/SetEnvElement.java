@@ -22,4 +22,9 @@ public class SetEnvElement extends Element {
         return data;
     }
 
+    @Override
+    public String generateOutputLine() {
+        return getOriginalLine();
+    }
+
 }

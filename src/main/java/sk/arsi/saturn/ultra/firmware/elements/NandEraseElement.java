@@ -22,4 +22,10 @@ public class NandEraseElement extends Element {
         return partName;
     }
 
+    @Override
+    public String generateOutputLine() {
+        //nand erase.part UBI
+        return getLeadingSpaces() + "nand erase.part " + partName;
+    }
+
 }

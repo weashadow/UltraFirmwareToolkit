@@ -35,5 +35,10 @@ public class UbiWriteElement extends Element {
         return volume;
     }
 
+    @Override
+    public String generateOutputLine() {
+        //ubi write 0x21000000 rootfs 0x1F7C000
+        return getLeadingSpaces() + "ubi write " + hex(address) + " " + volume + " " + hex(size);
+    }
 
 }

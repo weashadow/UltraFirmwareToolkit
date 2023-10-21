@@ -33,5 +33,10 @@ public class CrcCheckElement extends Element {
         this.length = length;
     }
 
+    @Override
+    public String generateOutputLine() {
+        //crccheck 0x21000000 0x5608
+        return getLeadingSpaces() + "crccheck " + hex(loadAddress) + " " + hex(length);
+    }
 
 }

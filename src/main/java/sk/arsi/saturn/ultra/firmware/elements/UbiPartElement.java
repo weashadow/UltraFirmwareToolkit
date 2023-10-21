@@ -23,5 +23,10 @@ public class UbiPartElement extends Element {
         return volume;
     }
 
+    @Override
+    public String generateOutputLine() {
+        //ubi part UBI
+        return getOriginalLine();
+    }
 
 }

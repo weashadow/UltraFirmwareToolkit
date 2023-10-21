@@ -13,8 +13,6 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -191,28 +189,24 @@ public class Main {
     }
 
     private static void build(File src) throws IOException {
-        List<FileRecord> records = new ArrayList<>();
-        System.out.println("********************************************************************");
+        System.out.println("************************** BUILD ******************************************");
+        FirmwareRoot firmwareRoot = FimwareUtils.parseElements(file);
         File directory = file.getParentFile();
         String build = "";
-        //    parseHeader(src, records);
-        records.sort(new Comparator<FileRecord>() {
-            @Override
-            public int compare(FileRecord o1, FileRecord o2) {
-                Integer pos1 = o1.position;
-                Integer pos2 = o2.position;
-                return pos1.compareTo(pos2);
-            }
-        });
         ByteBuffer buffer = ByteBuffer.allocate((int) src.length() + ADD_TO_SIZE);
-        for (int i = 0; i < records.size(); i++) {
-            FileRecord record = records.get(i);
+        List<FatloadUsbElement> loadElements = firmwareRoot.getLoadElements();
+        for (int i = 0; i < loadElements.size(); i++) {
+            FatloadUsbElement record = loadElements.get(i);
+            if ("set_config".equals(record.getPartitionName())) {
+                continue;
+            }
+            String name = record.getPartitionName();
             System.out.println("********************************************************************");
-            System.out.println("Disk image file: " + record.getName());
-            File original = new File(directory, record.getName());
-            File custom = new File(directory, record.getName().replace(".es", ".out.es"));
-            File originalCrc = new File(directory, record.getName() + ".crc");
-            File customCrc = new File(directory, record.getName().replace(".es", ".out.es") + ".crc");
+            System.out.println("Disk image file: " + name);
+            File original = new File(directory, name);
+            File custom = new File(directory, name.replace(".es", ".out.es"));
+            File originalCrc = new File(directory, name + ".crc");
+            File customCrc = new File(directory, name.replace(".es", ".out.es") + ".crc");
             boolean useCustom = false;
             if (custom.exists() && !sameFile(originalCrc, customCrc)) {
                 if (original.length() == custom.length()) {
@@ -232,16 +226,18 @@ public class Main {
         System.out.println("New firmware size: " + size);
     }
 
-    private static void addFile(ByteBuffer buffer, File image, File imageCrc, FileRecord record) throws IOException {
+    private static void addFile(ByteBuffer buffer, File image, File imageCrc, FatloadUsbElement loadElement) throws IOException {
         ByteBuffer fileData = bufferFile(image);
         ByteBuffer fileCrc = bufferFile(imageCrc);
         int startPosition = buffer.position();
         buffer.put(fileData);
         buffer.put(fileCrc);
-        record.setNewPosition(startPosition + HEADER_SIZE);
-        record.setNewLength((int) image.length());
-        System.out.println("Start: " + String.format("0x%08X", record.position) + " > " + String.format("0x%08X", record.newPosition));
-        System.out.println("Length: " + String.format("0x%08X", record.size) + " > " + String.format("0x%08X", record.newLength));
+        int origPosition = loadElement.getPosition();
+        int origLength = loadElement.getLength();
+        loadElement.setPosition(startPosition + HEADER_SIZE);
+        loadElement.setLength((int) image.length());
+        System.out.println("Start: " + String.format("0x%08X", origPosition) + " > " + String.format("0x%08X", loadElement.getPosition()));
+        System.out.println("Length: " + String.format("0x%08X", origLength) + " > " + String.format("0x%08X", loadElement.getLength()));
         while ((buffer.position() & 0xfff) > 0) {
             buffer.put((byte) 0xff);
         }

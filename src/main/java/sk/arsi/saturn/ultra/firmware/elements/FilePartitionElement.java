@@ -61,4 +61,9 @@ public class FilePartitionElement extends Element {
         return "Partition" + name; //To change body of generated methods, choose Tools | Templates.
     }
 
+    @Override
+    public String generateOutputLine() {
+        return getLeadingSpaces() + "# File Partition: " + name;
+    }
+
 }

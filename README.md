@@ -4,7 +4,7 @@
 
 Saturn 3 Ultra firmware mod toolkit
 
-*Work in progress...* 
+*Work in progress... All that's left is to produce new firmware and upload it to the printer.* 
 
 
 ## Use of this software is at your own risk, the author is not responsible for damages caused by modification of the original firmware!

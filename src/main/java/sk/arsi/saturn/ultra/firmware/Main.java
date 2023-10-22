@@ -220,6 +220,8 @@ public class Main {
             if (custom.exists() && !sameFile(originalCrc, customCrc)) {
                 if (original.length() == custom.length()) {
                     useCustom = keyboard("The " + custom.getName() + " has same size as original. Do you wish to use the " + custom.getName() + " file?");
+                } else {
+                    useCustom = true;
                 }
             }
             if (useCustom) {

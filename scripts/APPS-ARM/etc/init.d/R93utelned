@@ -1,0 +1,45 @@
+#!/bin/sh
+
+
+start() {
+	printf "Starting utelnetd service: "
+	/usr/bin/utelnetd -l /bin/sh -d
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+
+}
+
+stop() {
+	printf "Shutting down utelnetd service: "
+	kill -9 `pidof utelnetd`
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	echo "reload"
+}
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  reload)
+  	reload
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload}"
+	exit 1
+esac
+
+exit $?

@@ -1,0 +1,45 @@
+#!/bin/sh
+
+
+start() {
+	printf "Starting dropbear service: "
+	/usr/bin/dropbear -a
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+
+}
+
+stop() {
+	printf "Shutting down dropbear service: "
+	kill -9 `pidof dropbear`
+	[ $? = 0 ] && echo "OK" || echo "FAIL"
+
+}
+
+restart() {
+	stop
+	start
+}
+
+reload() {
+	echo "reload"
+}
+
+case "$1" in
+  start)
+  	start
+	;;
+  stop)
+  	stop
+	;;
+  restart)
+  	restart
+	;;
+  reload)
+  	reload
+	;;
+  *)
+	echo "Usage: $0 {start|stop|restart|reload}"
+	exit 1
+esac
+
+exit $?

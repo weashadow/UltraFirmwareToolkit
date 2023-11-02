@@ -13,4 +13,3 @@ sudo chmod 666 appconfigs.out.es
 sudo mkfs.ubifs -m 2048 -e 126976 -c 36 -x lzo -o parameter.out.es -r parameter --space-fixup
 crc32 parameter.out.es | tr -d "\n" > parameter.out.es.crc
 sudo chmod 666 parameter.out.es
-java -jar UltraFirmwareToolkit.jar -build ChituUpgrade.bin 

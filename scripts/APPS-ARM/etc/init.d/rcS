@@ -1,0 +1,57 @@
+#!/bin/sh
+
+
+# Start all init scripts in /etc/init.d
+# executing them in numerical order.
+#
+for i in /etc/init.d/S??* ;do
+
+     # Ignore dangling symlinks (if any).
+     [ ! -f "$i" ] && continue
+
+     case "$i" in
+	*.sh)
+	    # Source shell script for speed.
+	    (
+		trap - INT QUIT TSTP
+		set start
+		. $i
+	    )
+	    ;;
+	*)
+	    # No sh extension, so fork subprocess.
+	    $i start
+	    ;;
+    esac
+done
+
+export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/config/lib
+mount -t ubifs ubi0:miservice /config
+ mount -t ubifs ubi0:customer /customer
+ mount -t ubifs ubi0:appconfigs /appconfigs
+ mount -t ubifs ubi0:parameter /parameter
+
+ulimit -c unlimited
+    echo "|/customer/coredump_helper.sh" > /proc/sys/kernel/core_pattern
+export TSLIB_ROOT=/config/tslib
+export TSLIB_PLUGINDIR=/lib/ts
+export TSLIB_TSDEVICE=/dev/input/event0
+export TSLIB_FBDEVICE=/dev/fb0
+export TSLIB_CONSOLEDEVICE=none
+export TSLIB_CALIBFILE=/config/tslib/pointercal
+export TSLIB_CONFFILE=/config/tslib/ts.conf
+if [ -e /customer/customerStart ]; then
+    /customer/customerStart
+fi;
+if [ -e /customer/modules_stage0.sh ]; then
+    /customer/modules_stage0.sh
+fi;
+if [ -e /customer/app0.sh ]; then
+    /customer/app0.sh
+fi;
+if [ -e /customer/modules_stage1.sh ]; then
+    /customer/modules_stage1.sh
+fi;
+if [ -e /customer/app1.sh ]; then
+    /customer/app1.sh
+fi;

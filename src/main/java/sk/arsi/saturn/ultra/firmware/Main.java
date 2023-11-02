@@ -143,10 +143,14 @@ public class Main {
                     break;
             }
         }
+        build += "\n";
+        build += "sudo java -jar UltraFirmwareToolkit.jar -build ChituUpgrade.bin\n";
+        build += "sudo chmod 777 ChituUpgrade.bin.out\n";
+
         File tmp = new File(src.getParentFile(), "build.sh");
         tmp.setExecutable(true, false);
         FileOutputStream fos = new FileOutputStream(tmp);
-        fos.write(build.getBytes());
+        fos.write(build.getBytes("UTF-8"));
         fos.close();
     }
 

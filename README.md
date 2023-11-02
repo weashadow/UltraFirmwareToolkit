@@ -4,7 +4,7 @@
 
 Saturn 3 Ultra firmware mod toolkit
 
-*Work in progress... All that's left is to produce new firmware and upload it to the printer.* 
+*Firmware mod is tested and fully functional* 
 
 
 ## Use of this software is at your own risk, the author is not responsible for damages caused by modification of the original firmware!
@@ -26,13 +26,11 @@ Copy the ChituUpgrade.bin file to the scripts directory and run extract.sh<br/>
 From the firmware file, the disk images in UBI format are extracted (*.es) and the checksum files (*.es.crc) <br/>
 And finally the directories in which the file system is located are extracted... <br/>
 
-After editing the filesystem, use build.sh to create new UBI disk images and crc files..<br/>
+After editing the filesystem, use build.sh to create new UBI disk images and crc files and new image ChituUpgrade.bin.out<br/>
 (*.out.es) and (*.out.es.crc)<br/>
 
 Clear all generated files and directories with clear.sh<br/>
 
-**ToDo:**<br/>
-All that's left is to produce new firmware and upload it to the printer.<br/>
 
 **Partitions:**<br/>
 > rootfs 44 MB<br/>

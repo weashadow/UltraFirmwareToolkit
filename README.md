@@ -26,8 +26,8 @@ Copy the ChituUpgrade.bin file to the scripts directory and run extract.sh<br/>
 From the firmware file, the disk images in UBI format are extracted (*.es) and the checksum files (*.es.crc) <br/>
 And finally the directories in which the file system is located are extracted... <br/>
 
-After editing the filesystem, use build.sh to create new UBI disk images and crc files and new image ChituUpgrade.bin.out<br/>
-(*.out.es) and (*.out.es.crc)<br/>
+After editing the filesystem, use build.sh to create new UBI disk images and crc files (*.out.es) and (*.out.es.crc) and new image ChituUpgrade.bin.out<br/>
+<br/>
 
 Clear all generated files and directories with clear.sh<br/>
 

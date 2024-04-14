@@ -50,7 +50,7 @@ public class Main {
     private static final String buildLines = "sudo mkfs.ubifs -m unit_size -e block_size -c max_size -x lzo -o dir_name.out.es -r dir_name --space-fixup\n"
             + "crc32 dir_name.out.es | tr -d \"\\n\" > dir_name.out.es.crc\n"
             + "sudo chmod 666 dir_name.out.es\n";
-    private static final String buildMKF = "sudo mkfs.ubifs -m unit_size -e block_size -c max_size -x lzo -o dir_name.out.es -r dir_name --space-fixup\n";
+    private static final String buildMKF = "sudo mkfs.ubifs -m unit_size -e block_size -c max_size -x lzo -o dir_name.merged.out.es -r dir_name --space-fixup\n";
     private static final String buildCRC = "crc32 dir_name | tr -d \"\\n\" > dir_name.crc\n"
             + "sudo chmod 666 dir_name\n";
     private static File file;
@@ -155,7 +155,7 @@ public class Main {
                         build += buildMKF.replace(unit_size, flasfInfo.unitSize)
                                 .replace(block_size, flasfInfo.blockSize)
                                 .replace(max_size, flasfInfo.maxBlocks)
-                                .replace(dir_name, loadElement.getPartitionName().replace(".es", ".merged"));
+                                .replace(dir_name, loadElement.getPartitionName().replace(".es", ""));
                         //split
                         File tmpX = new File(src.getParentFile(), loadElement.getPartitionName());
                         long size = tmpX.length();

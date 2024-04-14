@@ -27,6 +27,7 @@ import sk.arsi.saturn.ultra.firmware.elements.StartElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiCreateElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiPartElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiWriteElement;
+import sk.arsi.saturn.ultra.firmware.elements.UbiWritePartElement;
 import sk.arsi.saturn.ultra.firmware.elements.UpgradeBinElement;
 import sk.arsi.saturn.ultra.firmware.elements.UpgradeForceElement;
 import sk.arsi.saturn.ultra.firmware.elements.WriteCisElement;
@@ -87,6 +88,18 @@ public class FimwareUtils {
             } else if (line.startsWith("ubi part UBI") && partitionElement != null) {
                 //ubi part UBI
                 partitionElement.addElement(new UbiPartElement(firmwareRoot, originalLine, line));
+            } else if (line.startsWith("ubi write.part") && partitionElement != null) {
+                //ubi write.part 0x21000000 customer 0x2300000 0x250E000
+                //ubi write.part 0x21000000 customer 0x2300000
+                String[] split = line.split(" ");
+                final long address = Long.valueOf(split[2].replace("0x", ""), 16);
+                final String volume = split[3];
+                final int size = Integer.valueOf(split[4].replace("0x", ""), 16);
+                int fullSize = 0;
+                if (split.length == 6) {
+                    fullSize = Integer.valueOf(split[5].replace("0x", ""), 16);
+                }
+                partitionElement.addElement(new UbiWritePartElement(firmwareRoot, partitionElement, originalLine, address, volume, size, fullSize));
             } else if (line.startsWith("ubi write") && partitionElement != null) {
                 //ubi write 0x21000000 rootfs 0x1F7C000
                 String[] split = line.split(" ");

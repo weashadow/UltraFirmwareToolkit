@@ -12,11 +12,11 @@ package sk.arsi.saturn.ultra.firmware.elements;
  */
 public class UbiWriteElement extends Element {
 
-    private final long address;
-    private final String volume;
-    private int size;
-    private FilePartitionElement partitionElement;
-    private int index = 0;
+    protected final long address;
+    protected final String volume;
+    protected int size;
+    protected FilePartitionElement partitionElement;
+    protected int index = 0;
 
     public UbiWriteElement(FirmwareRoot firmwareRoot, FilePartitionElement partitionElement, String originalLine, long address, String volume, int size) {
         super(firmwareRoot, originalLine);

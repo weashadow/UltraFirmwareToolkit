@@ -1,0 +1,111 @@
+# <- this is for comment / total file size must be less than 4KB
+#upgrade_bin_version=GKtwoV1.3.3
+#upgrade_force=1
+
+# File Partition: cis.es
+fatload usb 0 0x21000000 $(UpgradeImage) 0x5608 0x4000
+crccheck 0x21000000 0x5608
+fatload usb 0 0x21800000 $(UpgradeImage) 0x208 0xa000
+crccheck 0x21800000 0x208
+writecis 0x21000000 0x21800000 10 0 0 5
+
+# File Partition: set_partition.es
+mtdparts del CIS
+setenv mtdparts $(mtdparts),0x20000(KEY_CUST),0x60000(LOGO),0x500000(KERNEL),0x500000(RECOVERY),-(UBI)
+saveenv
+nand erase.part UBI
+ubi part UBI
+ubi create rootfs 0x2C00000
+ ubi create miservice 0xA00000
+ ubi create customer 0x2800000
+ ubi create appconfigs 0x400000
+ ubi create parameter 0x400000
+
+# File Partition: ipl.es
+fatload usb 0 0x21000000 $(UpgradeImage) 0x5be8 0xb000
+crccheck 0x21000000 0x5be8
+nand erase.part IPL0
+nand write.e 0x21000000 IPL0 0x5BE0
+nand erase.part IPL1
+nand write.e 0x21000000 IPL1 0x5BE0
+
+# File Partition: ipl_cust.es
+fatload usb 0 0x21000000 $(UpgradeImage) 0x5368 0x11000
+crccheck 0x21000000 0x5368
+nand erase.part IPL_CUST0
+nand write.e 0x21000000 IPL_CUST0 0x5360
+nand erase.part IPL_CUST1
+nand write.e 0x21000000 IPL_CUST1 0x5360
+
+# File Partition: uboot.es
+fatload usb 0 0x21000000 $(UpgradeImage) 0x3ceec 0x17000
+crccheck 0x21000000 0x3ceec
+nand erase.part UBOOT0
+nand write.e 0x21000000 UBOOT0 0x3CEE4
+nand erase.part UBOOT1
+nand write.e 0x21000000 UBOOT1 0x3CEE4
+
+# File Partition: logo.es
+fatload usb 0 0x21000000 $(UpgradeImage) 0x1f2a8 0x54000
+crccheck 0x21000000 0x1f2a8
+nand erase.part LOGO
+nand write.e 0x21000000 LOGO 0x1F2A0
+
+# File Partition: kernel.es
+fatload usb 0 0x21000000 $(UpgradeImage) 0x1d7a6c 0x74000
+crccheck 0x21000000 0x1d7a6c
+nand erase.part KERNEL
+nand write.e 0x21000000 KERNEL 0x1D7A64
+nand erase.part RECOVERY
+nand write.e 0x21000000 RECOVERY 0x1D7A64
+
+# File Partition: rootfs.es
+ubi part UBI
+fatload usb 0 0x21000000 $(UpgradeImage) 0x1f7c008 0x24c000
+crccheck 0x21000000 0x1f7c008
+ubi write 0x21000000 rootfs 0x1F7C000
+
+# File Partition: miservice.es
+ubi part UBI
+fatload usb 0 0x21000000 $(UpgradeImage) 0x899008 0x21c9000
+crccheck 0x21000000 0x899008
+ubi write 0x21000000 miservice 0x899000
+
+# File Partition: customer.es
+ubi part UBI
+fatload usb 0 0x21000000 $(UpgradeImage) 0x2300008 0x2a63000
+crccheck 0x21000000 0x2300008
+ubi write.part 0x21000000 customer 0x2300000 0x250E000
+fatload usb 0 0x21000000 $(UpgradeImage) 0x20e008 0x4d64000
+crccheck 0x21000000 0x20e008
+ubi write.part 0x21000000 customer 0x2300000
+
+# File Partition: appconfigs.es
+ubi part UBI
+fatload usb 0 0x21000000 $(UpgradeImage) 0x193008 0x4f73000
+crccheck 0x21000000 0x193008
+ubi write 0x21000000 appconfigs 0x193000
+
+# File Partition: parameter.es
+ubi part UBI
+fatload usb 0 0x21000000 $(UpgradeImage) 0x193008 0x5107000
+crccheck 0x21000000 0x193008
+ubi write 0x21000000 parameter 0x193000
+
+# File Partition: set_config
+setenv bootargs console=ttyS0,115200 ubi.mtd=UBI,2048 root=ubi:rootfs ro rootfstype=ubifs init=/linuxrc rootwait=1 LX_MEM=0x3f00000 mma_heap=mma_heap_name0,miu=0,sz=0x500000 mma_memblock_remove=1 highres=on mmap_reserved=fb,miu=0,sz=0x300000,max_start_off=0x3300000,max_end_off=0x3600000 $(mtdparts)
+setenv bootcmd 'nand read.e 0x22000000 KERNEL 0x1d7a64; ; bootm 0x22000000; nand read.e 0x22000000 RECOVERY 0x1d7a64; bootm 0x22000000;
+setenv dispout AMS495QA04_960x544
+setenv lcd_backlight_pad 90
+setenv lcd_reset_pad 89
+setenv lcd_backlight_inversion 0
+setenv lcd_reset_inversion 0
+setenv rotate_enable 0
+setenv rotate_mode 0
+setenv beep_pwm_channel 3
+setenv beep_pwm_pad 12
+setenv default_off_pad 4,5
+setenv autoestart 0
+saveenv
+saveenv
+% <- this is end of script symbol

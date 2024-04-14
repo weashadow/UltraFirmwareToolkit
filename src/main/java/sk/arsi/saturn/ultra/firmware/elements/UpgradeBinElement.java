@@ -12,20 +12,25 @@ package sk.arsi.saturn.ultra.firmware.elements;
  */
 public class UpgradeBinElement extends Element {
 
-    private final String version;
+    private String version;
+    private final String originalVersion;
 
     public UpgradeBinElement(FirmwareRoot firmwareRoot, String originalLine, String version) {
         super(firmwareRoot, originalLine);
         this.version = version;
+        this.originalVersion = version;
     }
 
     public String getVersion() {
         return version;
     }
 
+    public void setVersion(String version) {
+        this.version = version;
+    }
     @Override
     public String generateOutputLine() {
-        return getOriginalLine();
+        return getOriginalLine().replace(originalVersion, version);
     }
 
 }

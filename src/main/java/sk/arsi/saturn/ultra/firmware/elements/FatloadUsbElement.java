@@ -66,6 +66,11 @@ public class FatloadUsbElement extends Element {
         return n;
     }
 
+    public String getSimplePartitionName() {
+        String n = partitionElement.getName();
+        return n.substring(0, n.indexOf('.'));
+    }
+
     @Override
     public String toString() {
         return "Name: " + getPartitionName() + " Position: " + position + " Length: " + length; //To change body of generated methods, choose Tools | Templates.

@@ -16,10 +16,14 @@ import java.nio.ByteBuffer;
 import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.WritableByteChannel;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import sk.arsi.saturn.ultra.firmware.elements.CrcCheckElement;
@@ -28,6 +32,7 @@ import sk.arsi.saturn.ultra.firmware.elements.FatloadUsbElement;
 import sk.arsi.saturn.ultra.firmware.elements.FirmwareRoot;
 import sk.arsi.saturn.ultra.firmware.elements.UbiCreateElement;
 import sk.arsi.saturn.ultra.firmware.elements.UbiWriteElement;
+import sk.arsi.saturn.ultra.firmware.elements.UpgradeBinElement;
 
 /**
  *
@@ -45,6 +50,9 @@ public class Main {
     private static final String buildLines = "sudo mkfs.ubifs -m unit_size -e block_size -c max_size -x lzo -o dir_name.out.es -r dir_name --space-fixup\n"
             + "crc32 dir_name.out.es | tr -d \"\\n\" > dir_name.out.es.crc\n"
             + "sudo chmod 666 dir_name.out.es\n";
+    private static final String buildMKF = "sudo mkfs.ubifs -m unit_size -e block_size -c max_size -x lzo -o dir_name.out.es -r dir_name --space-fixup\n";
+    private static final String buildCRC = "crc32 dir_name | tr -d \"\\n\" > dir_name.crc\n"
+            + "sudo chmod 666 dir_name\n";
     private static File file;
 
     /**
@@ -102,6 +110,7 @@ public class Main {
     public static void extract(File src) throws FileNotFoundException, IOException {
         FirmwareRoot firmwareRoot = FimwareUtils.parseElements(file);
         String build = "";
+        String extract = "#!/bin/sh\n";
         ByteBuffer buffer = bufferFile(src);
         for (int i = 0; i < firmwareRoot.getLoadElements().size(); i++) {
             FatloadUsbElement loadElement = firmwareRoot.getLoadElements().get(i);
@@ -128,15 +137,48 @@ public class Main {
                 case "customer.es":
                 case "appconfigs.es":
                 case "parameter.es": {
-                    FlasfInfo flasfInfo = execCmd("binwalk -B " + tmp.getAbsolutePath());
-                    if (flasfInfo.isEmpty()) {
-                        System.out.println("Unable to analyse binwalk output!");
-                        System.exit(10);
+                    if (loadElement.getPartitionElement().getFatLoadElements().size() > 1) {
+                        String split = "cat ";
+                        for (int j = 0; j < loadElement.getPartitionElement().getFatLoadElements().size(); j++) {
+                            loadElement.setIndex(j);
+                            split += loadElement.getPartitionName() + " ";
+                        }
+                        loadElement.setIndex(0);
+                        split += ">" + loadElement.getSimplePartitionName() + ".merged\n";
+                        extract += split;
+                        extract += "sudo ubireader_extract_files -k " + loadElement.getSimplePartitionName() + ".merged" + " -o " + loadElement.getSimplePartitionName() + "\n";
+                        FlasfInfo flasfInfo = execCmd("binwalk -B " + tmp.getAbsolutePath());
+                        if (flasfInfo.isEmpty()) {
+                            System.out.println("Unable to analyse binwalk output!");
+                            System.exit(10);
+                        }
+                        build += buildMKF.replace(unit_size, flasfInfo.unitSize)
+                                .replace(block_size, flasfInfo.blockSize)
+                                .replace(max_size, flasfInfo.maxBlocks)
+                                .replace(dir_name, loadElement.getPartitionName().replace(".es", ".merged"));
+                        //split
+                        File tmpX = new File(src.getParentFile(), loadElement.getPartitionName());
+                        long size = tmpX.length();
+                        build += "split -b " + size + " -d -a 1 " + loadElement.getSimplePartitionName() + ".merged.out.es " + loadElement.getSimplePartitionName() + ".out.es.\n";
+                        build += "mv " + loadElement.getSimplePartitionName() + ".out.es.0 " + loadElement.getSimplePartitionName() + ".out.es\n";
+                        build += buildCRC.replace(dir_name, loadElement.getSimplePartitionName() + ".out.es");
+                        for (int k = 1; k < loadElement.getPartitionElement().getFatLoadElements().size(); k++) {
+                            build += buildCRC.replace(dir_name, loadElement.getSimplePartitionName() + ".out.es." + k);
+                        }
+                        loadElement.setIndex(0);
+                    } else {
+                        extract += "sudo ubireader_extract_files -k " + loadElement.getPartitionName() + " -o " + loadElement.getSimplePartitionName() + "\n";
+                        FlasfInfo flasfInfo = execCmd("binwalk -B " + tmp.getAbsolutePath());
+                        if (flasfInfo.isEmpty()) {
+                            System.out.println("Unable to analyse binwalk output!");
+                            System.exit(10);
+                        }
+                        build += buildLines.replace(unit_size, flasfInfo.unitSize)
+                                .replace(block_size, flasfInfo.blockSize)
+                                .replace(max_size, flasfInfo.maxBlocks)
+                                .replace(dir_name, loadElement.getPartitionName().replace(".es", ""));
                     }
-                    build += buildLines.replace(unit_size, flasfInfo.unitSize)
-                            .replace(block_size, flasfInfo.blockSize)
-                            .replace(max_size, flasfInfo.maxBlocks)
-                            .replace(dir_name, loadElement.getPartitionName().replace(".es", ""));
+
                 }
                 break;
                 default:
@@ -147,11 +189,26 @@ public class Main {
         build += "sudo java -jar UltraFirmwareToolkit.jar -build ChituUpgrade.bin\n";
         build += "sudo chmod 777 ChituUpgrade.bin.out\n";
 
+        Set<PosixFilePermission> perms = new HashSet<>();
+        perms.add(PosixFilePermission.OWNER_READ);
+        perms.add(PosixFilePermission.OWNER_WRITE);
+        perms.add(PosixFilePermission.OWNER_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_EXECUTE);
+        perms.add(PosixFilePermission.OTHERS_READ);
+        perms.add(PosixFilePermission.GROUP_EXECUTE);
+        perms.add(PosixFilePermission.GROUP_READ);
         File tmp = new File(src.getParentFile(), "build.sh");
         tmp.setExecutable(true, false);
         FileOutputStream fos = new FileOutputStream(tmp);
         fos.write(build.getBytes("UTF-8"));
         fos.close();
+        Files.setPosixFilePermissions(tmp.toPath(), perms);
+        tmp = new File(src.getParentFile(), "extract_partition.sh");
+        fos = new FileOutputStream(tmp);
+        fos.write(extract.getBytes("UTF-8"));
+        fos.close();
+        Files.setPosixFilePermissions(tmp.toPath(), perms);
+
     }
 
     public static FlasfInfo execCmd(String cmd) {
@@ -245,6 +302,26 @@ public class Main {
         List<Element> elements = firmwareRoot.getElements();
         for (int i = 0; i < elements.size(); i++) {
             Element element = elements.get(i);
+            if (element instanceof UpgradeBinElement) {
+                String version = ((UpgradeBinElement) element).getVersion().replace("V", "").replace("v", "");
+                String newVersion = version;
+                String[] split = version.split("\\.");
+                if (split.length == 3) {
+                    try {
+                        int v = Integer.valueOf(split[2]);
+                        v++;
+                        newVersion = "V" + split[0] + "." + split[1] + "." + v;
+                    } catch (NumberFormatException numberFormatException) {
+                        throw new RuntimeException("Unable to decode firmware version..");
+                    }
+                } else {
+                    throw new RuntimeException("Unable to decode firmware version..");
+                }
+
+                if (keyboardYes("Do you want to increase the firmware version " + version + " to " + newVersion + " so that the firmware can be installed even when the same version is installed?")) {
+                    ((UpgradeBinElement) element).setVersion(newVersion);
+                }
+            }
             firmwareScript += element.generateOutputLine() + "\n";
         }
         byte[] firmwareScriptBytes = firmwareScript.getBytes("UTF-8");
@@ -320,6 +397,20 @@ public class Main {
                 return false;
             } else if ("".equals(option)) {
                 return false;
+            };
+        }
+    }
+
+    public static boolean keyboardYes(String prompt) {
+        System.out.println(prompt + " [" + "Y" + "/" + "n" + "]: ");
+        while (true) {
+            String option = scanner.nextLine();
+            if ("y".equalsIgnoreCase(option)) {
+                return true;
+            } else if ("n".equalsIgnoreCase(option)) {
+                return false;
+            } else if ("".equals(option)) {
+                return true;
             };
         }
     }

@@ -4,6 +4,10 @@
 
 Saturn 3 Ultra firmware mod toolkit
 
+Supported printers:
+ - Saturn 3 Ultra
+ - Uniformation GKTwo
+
 *Firmware mod is tested and fully functional* 
 
 

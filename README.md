@@ -8,7 +8,11 @@ Supported printers:
  - Saturn 3 Ultra
  - Uniformation GKTwo
 
-*S3U Firmware mod is tested and fully functional* 
+*S3U and GKTwo Firmware mod is tested and fully functional* 
+
+<b> Modified firmware for Saturn 3 ultra and Uniformation GKTwo can be found [here](
+https://github.com/weashadow/UltraFirmwareToolkit/releases).</b>
+
 
 
 ## Use of this software is at your own risk, the author is not responsible for damages caused by modification of the original firmware!

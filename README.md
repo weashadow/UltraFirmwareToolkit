@@ -29,12 +29,12 @@ https://github.com/weashadow/UltraFirmwareToolkit/releases).</b>
 [Java](https://www.azul.com/downloads/?package=jdk#zulu)
 
 **Usage:**<br/>
-Copy the ChituUpgrade.bin file to the scripts directory and run extract.sh<br/>
+Copy the ChituUpgrade.bin file to the scripts directory and run <b>extract.sh</b><br/>
+<b>extract.sh</b> generates disk images in UBI format (*.es) and the checksum files (*.es.crc) and scripts <b>extract_partition.sh, build.sh</b><br/>
+Use <b>extract_partition.sh</b> to extract the contents of disk images files to the directories<br/>
 
-From the firmware file, the disk images in UBI format are extracted (*.es) and the checksum files (*.es.crc) <br/>
-And finally the directories in which the file system is located are extracted... <br/>
 
-After editing the filesystem, use build.sh to create new UBI disk images and crc files (*.out.es) and (*.out.es.crc) and new image ChituUpgrade.bin.out<br/>
+After editing the filesystem, use <b>build.sh</b> to create new UBI disk images and crc files (*.out.es) and (*.out.es.crc) and new image ChituUpgrade.bin.out<br/>
 <br/>
 
 Clear all generated files and directories with clear.sh<br/>
